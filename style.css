@@ -220,3 +220,10 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:po
 .gcard p{margin:0;color:var(--ink-2)}
 .gcard input{border:1px solid var(--line-strong);background:var(--surface);border-radius:8px;padding:10px 12px;width:100%}
 .gcard .gerr{color:var(--bad-t);font-weight:600;min-height:1.4em}
+
+/* view-only mode */
+.ro .editonly,.ro [data-act="add"],.ro [data-act="del"],.ro [data-act="clear"],.ro [data-act="addEvent"],.ro [data-act="addNames"],.ro [data-act="addKit"],.ro [data-act="unseat"],.ro [data-act="rmimg"],.ro label.btn:has(input[type=file]){display:none!important}
+.ro .in:disabled{opacity:1;color:var(--ink);-webkit-text-fill-color:var(--ink);background:transparent;border-color:transparent;cursor:default;appearance:none}
+.ro select.in:disabled{background-image:none}
+.ro input[type=checkbox]:disabled{cursor:default;opacity:.8}
+.ro textarea.in:disabled{resize:none}

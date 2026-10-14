@@ -21,10 +21,11 @@
 <div class="toast" id="toast" hidden></div>
 <div class="gate" id="gate" hidden>
   <form class="gcard" id="gform">
-    <h2>Enter your passcode</h2>
-    <p>This planner is private. Type the passcode you set up to open your plan on this device.</p>
+    <h2>Owner sign in</h2>
+    <p>Enter the passcode to edit this planner on this device.</p>
     <input id="gpass" type="password" autocomplete="current-password" aria-label="Passcode">
     <button class="btn pri" type="submit">Open planner</button>
+    <button class="btn" type="button" id="gcancel">Continue as visitor</button>
     <p class="gerr" id="gerr" role="alert"></p>
   </form>
 </div>

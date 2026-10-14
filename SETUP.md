@@ -42,3 +42,29 @@ The left panel will show "Synced" with the time.
 - If two people edit the same section at the same moment, the last save wins.
 - **Sign out** (left panel) removes the passcode and this device's local copy.
 - Keep using **Download backup** now and then as a safety copy.
+
+# View-only link for visitors
+
+Anyone who opens your Vercel link without the passcode now sees a read-only version.
+They cannot edit, add, delete or save anything. They see only the sections you allow.
+
+**Visitors see by default:** wedding names and date, mood board, calendar appointments,
+outfit details (without prices), wedding day timeline, playlist and photography plan.
+
+**Always private (visitors never receive this data):** budget, guest list, seating,
+task tracker, vendor quotes and contacts, venue comparison, emergency contacts,
+the do-not-play list and the budget and guest targets.
+
+You (the owner) tap **Owner sign in** in the left panel and enter the passcode to edit.
+
+## Change what visitors can see
+In Vercel go to **Settings > Environment Variables** and add `PUBLIC_SECTIONS`.
+The value is a comma list using these names:
+meta, mood, venues, vendors, budget, guests, tables, tasks, events, emergency, outfits, timeline, playlist, photo
+
+Examples:
+- `mood,timeline,events` shows only the mood board, timeline and calendar appointments
+- `none` turns view-only off, so the site asks everyone for the passcode
+
+Redeploy after changing it. Note that `meta` (names and date) is always included when anything is shared.
+Anything you list is readable by anyone who has the link, so share only what you are comfortable with.

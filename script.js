@@ -216,9 +216,9 @@ const state=STATE;
 const ui={cur:'overview',gfilter:'All',gq:'',tfilter:'Open',towner:'All',vfilter:'All',calMonth:todayISO().slice(0,7),calSel:todayISO(),confirm:null,assets:false,focus:null,uploading:null,undo:null};
 
 /* ---------- persistence: shared db when available, this device otherwise ---------- */
-let DB=null,SYNC='Loading…';let REMOTE=false,PASS='',retry=null,poll=null;const lastT={},retryKeys=new Set();const dirty=new Set(),writing={},again={};let timer=null;
+let DB=null,SYNC='Loading…';let REMOTE=false,VIEWER=false,PUBLIC=[],PASS='',retry=null,poll=null;const lastT={},retryKeys=new Set();const dirty=new Set(),writing={},again={};let timer=null;
 function setSync(s){SYNC=s;const e=$('#sync');if(e)e.textContent=s}
-function touch(path){dirty.add(path.split('.')[0]);setSync('Saving…');clearTimeout(timer);timer=setTimeout(flush,350)}
+function touch(path){if(VIEWER)return;dirty.add(path.split('.')[0]);setSync('Saving…');clearTimeout(timer);timer=setTimeout(flush,350)}
 async function flush(){for(const k of [...dirty])await writeKey(k)}
 async function writeKey(key){
   if(writing[key]){again[key]=true;return}
@@ -409,7 +409,7 @@ VIEWS.calendar={title:'Calendar',render(){
   '<h3 style="font:500 26px var(--display);margin:0 0 12px">'+monthLabel(ui.calMonth)+'</h3><div class="cal">'+cells+'</div>'+
   '<div class="legend" style="margin:10px 0 22px"><span><span class="g k-task"></span> Task due</span><span><span class="g k-pay"></span> Payment due</span><span><span class="g k-event"></span> Appointment</span><span><span class="g k-rsvp"></span> RSVP deadline</span><span><span class="g k-wedding"></span> Wedding day</span></div>'+
   '<div class="grid2"><section class="panel"><h3>'+fmtDate(ui.calSel,{weekday:'long',month:'long',day:'numeric',year:'numeric'})+'</h3>'+(daySel.length?'<ul class="list">'+daySel.map(x=>'<li><span class="g k-'+x.kind+'"></span><div'+(x.done?' style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(x.title)+'<small>'+KIND[x.kind]+(x.sub?' · '+esc(x.sub):'')+'</small></div>'+(x.id?delBtn('events',x.id,'Delete appointment'):'<span></span>')+'</li>').join('')+'</ul>':'<div class="empty">Nothing on this day.</div>')+
-  '<h3>Add an appointment on this day</h3><div class="form"><label class="fld">Title<input class="in" id="evTitle" placeholder="Cake tasting"></label><label class="fld">Time<input class="in" id="evTime" type="time"></label><label class="fld">Type<select class="in" id="evType">'+EVTYPES.map(x=>'<option>'+x+'</option>').join('')+'</select></label></div><p><button class="btn pri" data-act="addEvent">Add to calendar</button></p></section>'+
+  '<h3 class="editonly">Add an appointment on this day</h3><div class="form editonly"><label class="fld">Title<input class="in" id="evTitle" placeholder="Cake tasting"></label><label class="fld">Time<input class="in" id="evTime" type="time"></label><label class="fld">Type<select class="in" id="evType">'+EVTYPES.map(x=>'<option>'+x+'</option>').join('')+'</select></label></div><p><button class="btn pri" data-act="addEvent">Add to calendar</button></p></section>'+
   '<section class="panel"><h3>All appointments</h3><div class="tbl-wrap" style="margin:0"><table style="min-width:520px"><thead><tr><th>Date</th><th>Time</th><th>Title</th><th>Type</th><th></th></tr></thead><tbody>'+
   (evs.length?evs.map(r=>'<tr><td>'+inp('events',r.id,'date',r.date,{type:'date'})+'</td><td>'+inp('events',r.id,'time',r.time,{type:'time'})+'</td><td>'+inp('events',r.id,'title',r.title)+'</td><td>'+sel('events',r.id,'type',r.type,EVTYPES)+'</td><td>'+delBtn('events',r.id)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">No appointments yet.</td></tr>')+'</tbody></table></div></section></div>';
 }};
@@ -496,7 +496,7 @@ VIEWS.mood={title:'Mood board',render(){
   '<div class="mtiles">'+md.tiles.map((t,i)=>{const c=pal.length?pal[i%pal.length].hex:'#cccccc';return '<figure class="mt" style="margin:0"><div class="mimg" style="background:'+esc(c)+';color:'+ink(c)+'">'+(t.img?'<img src="'+esc(t.img)+'" alt="'+esc(t.title)+'" loading="lazy">':'<span>'+esc(t.title||'New idea')+'</span>')+
   '<div class="ov">'+(ui.assets?'<label class="btn sm" style="cursor:pointer">'+(ui.uploading===t.id?'Uploading…':(t.img?'Change':'Add photo'))+'<input type="file" accept="image/*" hidden data-up="'+t.id+'"></label>':'')+(t.img?'<button class="btn sm" data-act="rmimg" data-id="'+t.id+'">Remove</button>':'')+'</div></div><div class="mb">'+
   '<div style="display:flex;gap:2px">'+sel('mood.tiles',t.id,'cat',t.cat,CATM,{label:'Category'})+delBtn('mood.tiles',t.id,'Delete idea')+'</div>'+inp('mood.tiles',t.id,'title',t.title,{ph:'Title',label:'Title'})+area('mood.tiles',t.id,'note',t.note,'Notes')+'</div></figure>'}).join('')+'</div>'+
-  (ui.assets?'':'<p class="sn" style="margin-top:14px">Photo upload is available when you open this planner as its owner or an editor. Until then, use colors, titles and notes.</p>');
+  (ui.assets?'':'<p class="sn editonly" style="margin-top:14px">Photo upload is available when you open this planner as its owner or an editor. Until then, use colors, titles and notes.</p>');
 }};
 
 VIEWS.outfits={title:'Outfit details',render(){
@@ -559,11 +559,11 @@ const NAV=[['Plan',[['overview','Overview'],['tasks','Task tracker'],['summary',
 function renderMast(){
   const m=state.meta,days=diffDays(m.date,todayISO());
   const cd=days>0?'<b>'+days+'</b> days to go':days===0?'<b>Today</b> is the day':'Married <b>'+(-days)+'</b> days ago';
-  $('#mast').innerHTML='<div class="eyebrow">Wedding planner</div><h1 class="names">'+esc(m.a||'—')+' <em>&amp;</em> '+esc(m.b||'—')+'</h1><div class="when">'+esc(fmtDate(m.date,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))+'</div><div class="cd">'+cd+'</div><div class="sync" id="sync" aria-live="polite">'+esc(SYNC)+'</div>'+(window.claude&&window.claude.use?'':'<div class="bk"><button class="btn sm" data-act="backup">Download backup</button><label class="btn sm" style="cursor:pointer">Restore backup<input type="file" accept="application/json,.json" hidden data-restore="1"></label>'+(REMOTE?'<button class="btn sm" data-act="signout">Sign out</button>':'')+'</div>');
+  $('#mast').innerHTML='<div class="eyebrow">Wedding planner</div><h1 class="names">'+esc(m.a||'—')+' <em>&amp;</em> '+esc(m.b||'—')+'</h1><div class="when">'+esc(fmtDate(m.date,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))+'</div><div class="cd">'+cd+'</div><div class="sync" id="sync" aria-live="polite">'+esc(SYNC)+'</div>'+(VIEWER?'<div class="bk"><span class="pill info">View only</span><button class="btn sm" data-act="ownerlogin">Owner sign in</button></div>':window.claude&&window.claude.use?'':'<div class="bk"><button class="btn sm" data-act="backup">Download backup</button><label class="btn sm" style="cursor:pointer">Restore backup<input type="file" accept="application/json,.json" hidden data-restore="1"></label>'+(REMOTE?'<button class="btn sm" data-act="signout">Sign out</button>':'')+'</div>');
 }
 function renderNav(){
   const cnt={tasks:state.tasks.filter(t=>t.status!=='Done').length,guests:state.guests.length};
-  $('#nav').innerHTML=NAV.map(g=>'<div class="ng"><div class="nlab">'+g[0]+'</div>'+g[1].map(i=>'<button class="nl" data-go="'+i[0]+'"'+(ui.cur===i[0]?' aria-current="page"':'')+'>'+i[1]+(cnt[i[0]]!=null?' <small>'+cnt[i[0]]+'</small>':'')+'</button>').join('')+'</div>').join('');
+  $('#nav').innerHTML=NAV.map(g=>[g[0],g[1].filter(i=>canSee(i[0]))]).filter(g=>g[1].length).map(g=>'<div class="ng"><div class="nlab">'+g[0]+'</div>'+g[1].map(i=>'<button class="nl" data-go="'+i[0]+'"'+(ui.cur===i[0]?' aria-current="page"':'')+'>'+i[1]+(cnt[i[0]]!=null&&!VIEWER?' <small>'+cnt[i[0]]+'</small>':'')+'</button>').join('')+'</div>').join('');
   const a=$('#nav [aria-current]');if(a&&a.scrollIntoView&&window.innerWidth<960)try{a.scrollIntoView({inline:'center',block:'nearest'})}catch(e){}
 }
 function refreshDerived(){
@@ -576,12 +576,15 @@ function snapFocus(){const a=document.activeElement;if(a&&a.dataset&&a.dataset.f
 function restoreFocus(p,sc){if(!p)return;const el=[...document.querySelectorAll('#view [data-f]')].find(x=>x.dataset.k===p.k&&(x.dataset.id||'')===p.id&&x.dataset.f===p.f);if(el){el.focus({preventScroll:!sc});try{if(p.s!=null&&p.s!==undefined)el.setSelectionRange(p.s,p.e)}catch(e){}}}
 function render(keep){
   const p=keep===false?null:snapFocus(),y=window.scrollY;
+  if(VIEWER&&!canSee(ui.cur))ui.cur='overview';
+  document.body.classList.toggle('ro',VIEWER);
   $('#view').innerHTML=VIEWS[ui.cur].render();
+  if(VIEWER)lockView();
   refreshDerived();renderNav();applySearch();
   if(ui.focus){const f=ui.focus;ui.focus=null;restoreFocus(f,true)}else restoreFocus(p);
   if(keep!==false)window.scrollTo(0,y);
 }
-function go(id){if(!VIEWS[id])id='overview';ui.cur=id;try{location.hash=id}catch(e){}render(false);window.scrollTo(0,0)}
+function go(id){if(!VIEWS[id]||!canSee(id))id='overview';ui.cur=id;try{location.hash=id}catch(e){}render(false);window.scrollTo(0,0)}
 
 let toastTimer=null;
 function toast(msg,undo){const t=$('#toast');t.hidden=false;t.innerHTML='<span>'+esc(msg)+'</span>'+(undo?'<button data-act="undo">Undo</button>':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;ui.undo=null},6000)}
@@ -606,7 +609,7 @@ const ADD={
   'emergency.plans':()=>({id:uid(),risk:'',plan:''})
 };
 const FIRST={tasks:'title',budget:'item',guests:'name',venues:'name',vendors:'vendor',tables:'name',events:'title',outfits:'who',playlist:'title',timeline:'title','mood.palette':'name','mood.tiles':'title','photo.shots':'shot','photo.groups':'group','emergency.contacts':'role','emergency.plans':'risk'};
-function commit(t){
+function commit(t){if(VIEWER)return;
   const d=t.dataset;let v=t.type==='checkbox'?t.checked:t.value;
   if(d.t==='done')v=t.checked?'Done':'To do';
   else if(d.t==='num')v=num(v);
@@ -634,6 +637,7 @@ function onChange(e){
 function onClick(e){
   const go_=e.target.closest('[data-go]');if(go_){go(go_.dataset.go);return}
   const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset,a=d.act;
+  if(VIEWER&&a!=='setui'&&a!=='calnav'&&a!=='calsel'&&a!=='ownerlogin')return;
   if(a==='add'){const l=getPath(d.k),r=ADD[d.k]();l.push(r);touch(d.k);ui.focus={k:d.k,id:r.id,f:FIRST[d.k]};render(false);return}
   if(a==='addKit'){const r={id:uid(),group:d.g,text:'',done:false};state.emergency.kit.push(r);touch('emergency.kit');ui.focus={k:'emergency.kit',id:r.id,f:'text'};render();return}
   if(a==='del'){const l=getPath(d.k),i=l.findIndex(r=>r.id===d.id);if(i<0)return;const row=l.splice(i,1)[0];
@@ -655,6 +659,7 @@ function onClick(e){
   if(a==='unseat'){const g=state.guests.find(x=>x.id===d.id);if(g){g.table='';touch('guests');render()}return}
   if(a==='backup'){try{const blob=new Blob([JSON.stringify(state)],{type:'application/json'});const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download='wedding-planner-backup-'+todayISO()+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('Backup downloaded. Keep the file somewhere safe.')}catch(err){toast('Could not create the backup file.')}return}
   if(a==='signout'){Object.keys(localStorage).filter(k=>k.indexOf('wp:')===0).forEach(k=>localStorage.removeItem(k));location.reload();return}
+  if(a==='ownerlogin'){showGate('');return}
   if(a==='rmimg'){const t=state.mood.tiles.find(x=>x.id===d.id);if(t){t.img='';touch('mood');render()}return}
 }
 async function uploadTile(id,file){
@@ -682,7 +687,7 @@ window.addEventListener('pagehide',saveNow);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
 view.addEventListener('input',onInput);view.addEventListener('change',onChange);
 view.addEventListener('dragstart',onDragStart);view.addEventListener('dragover',onDragOver);view.addEventListener('dragleave',onDragLeave);view.addEventListener('drop',onDrop);
-window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(VIEWS[h]&&h!==ui.cur){ui.cur=h;render(false)}});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(VIEWS[h]&&canSee(h)&&h!==ui.cur){ui.cur=h;render(false)}});
 {const h=(location.hash||'').slice(1);if(VIEWS[h])ui.cur=h}
 renderMast();render(false);
 
@@ -741,8 +746,11 @@ async function tryConnect(manual){
   if(r.status===500){setSync('Sync is not set up yet. Saved in this browser only.');return}
   if(r.status===401){showGate(manual?'That passcode did not match. Try again.':'');return}
   if(r.status!==200)return;
-  REMOTE=true;hideGate();
+  hideGate();
   const secs=r.json.sections||{};
+  if(r.json.readOnly){enterViewer(secs,r.json.allowed);return}
+  if(VIEWER){location.reload();return}
+  REMOTE=true;
   const missing=Object.keys(state).filter(k=>!secs[k]);
   applyRemote(secs,true);
   if(missing.length){missing.forEach(k=>dirty.add(k));setSync('Sync connected. Uploading your plan…');flush()}
@@ -755,20 +763,54 @@ function startPolling(){
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pull()});
 }
 async function pull(){
-  if(!REMOTE||document.hidden)return;
+  if((!REMOTE&&!VIEWER)||document.hidden)return;
   const a=document.activeElement;
   if(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.type!=='checkbox'&&$('#view').contains(a))return;
   let r;try{r=await api('GET')}catch(e){return}
   if(r.status===401){lockOut();return}
   if(r.status!==200||!r.json)return;
+  if(VIEWER){const s=r.json.sections||{};if(s.meta)s.meta.v=Object.assign({},state.meta,s.meta.v);applyRemote(s,true);return}
   applyRemote(r.json.sections||{},false);
   if(!dirty.size&&!Object.values(writing).some(Boolean)&&!retryKeys.size)setSync('Synced '+clock());
 }
 async function initRemote(){
   if(location.protocol==='file:')return;
   try{PASS=localStorage.getItem('wp:pass')||''}catch(e){PASS=''}
-  if(!PASS){try{const r=await api('GET');if(r.status===401)showGate('');else if(r.status===200||r.status===500)tryConnect()}catch(e){}return}
+  if(!PASS){tryConnect();return}
   tryConnect();
 }
+
+/* ---------- view-only mode for visitors ---------- */
+const SEC={overview:'meta',tasks:'tasks',summary:'tasks',calendar:'events',budget:'budget',venues:'venues',vendors:'vendors',guests:'guests',seating:'tables',mood:'mood',outfits:'outfits',photo:'photo',playlist:'playlist',timeline:'timeline',emergency:'emergency'};
+function canSee(id){if(!VIEWER)return true;if(id==='overview')return true;return PUBLIC.indexOf(SEC[id])>=0}
+function lockView(){
+  document.querySelectorAll('#view input,#view select,#view textarea').forEach(e=>{if(e.dataset.ui)return;e.disabled=true});
+  document.querySelectorAll('#view [draggable]').forEach(e=>e.removeAttribute('draggable'));
+}
+function enterViewer(secs,allowed){
+  VIEWER=true;REMOTE=false;PUBLIC=allowed||Object.keys(secs);
+  const blank={venues:[],vendors:[],budget:[],guests:[],tables:[],tasks:[],events:[],outfits:[],playlist:[],timeline:[],
+    emergency:{kit:[],contacts:[],plans:[]},mood:{words:'',palette:[],tiles:[]},
+    photo:{photographer:'',videographer:'',hours:'',second:'',start:'',end:'',delivery:'',style:'',must:'',shots:[],groups:[]}};
+  Object.keys(blank).forEach(k=>{if(!secs[k])state[k]=blank[k]});
+  state.meta.budget=0;state.meta.guests=0;state.meta.dnp='';
+  if(secs.meta)secs.meta.v=Object.assign({},state.meta,secs.meta.v);
+  else{state.meta.a='';state.meta.b='';state.meta.date='';state.meta.rsvp=''}
+  applyRemote(secs,true);
+  setSync('View only. Updates automatically.');
+  render(false);startPolling();
+}
+const _overviewFull=VIEWS.overview.render;
+VIEWS.overview.render=function(){
+  if(!VIEWER)return _overviewFull();
+  const m=state.meta,td=todayISO();
+  if(!m.a&&!m.b)return head('Welcome','This planner has not been published yet. Please check back later.');
+  const links=NAV.reduce((a,g)=>a.concat(g[1]),[]).filter(i=>i[0]!=='overview'&&canSee(i[0]));
+  const up=allItems().filter(i=>i.date>=td&&i.kind!=='wedding').sort((a,c)=>a.date.localeCompare(c.date)).slice(0,6);
+  return head('Welcome',esc(m.a)+' and '+esc(m.b)+' are getting married on '+esc(fmtDate(m.date,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))+'. This is a read-only view of their plan.')+
+  '<section class="panel"><h3>Look around</h3><div class="chips" style="margin:0">'+links.map(i=>'<button class="cb" data-go="'+i[0]+'">'+i[1]+'</button>').join('')+'</div></section>'+
+  (up.length?'<section class="panel"><h3>Coming up</h3><ul class="list">'+up.map(x=>'<li><span class="dtag">'+esc(fmtDate(x.date))+'</span><div>'+esc(x.title)+'<small>'+KIND[x.kind]+(x.sub?' · '+esc(x.sub):'')+'</small></div><span class="g k-'+x.kind+'"></span></li>').join('')+'</ul></section>':'');
+};
+$('#gcancel').addEventListener('click',()=>{hideGate();PASS='';try{localStorage.removeItem('wp:pass')}catch(e){}tryConnect()});
 connect();
 })();
