@@ -7,7 +7,7 @@
 //   PLANNER_PASSCODE     required. The owner's passcode.
 //   KV_REST_API_URL, KV_REST_API_TOKEN   added for you when you connect Upstash Redis
 //   PUBLIC_SECTIONS      optional. Comma list of sections visitors may see.
-//                        Default: meta,mood,events,outfits,timeline,playlist,photo
+//                        Default: meta,mood,events,outfits,timeline,playlist,photo,guests,tables
 //                        Use "none" to turn view-only off completely.
 const crypto = require('crypto');
 
@@ -16,7 +16,7 @@ const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_
 const HASH_KEY = 'wedding-planner:sections';
 const SECTIONS = ['meta', 'mood', 'venues', 'vendors', 'budget', 'guests', 'tables', 'tasks',
   'events', 'emergency', 'outfits', 'timeline', 'playlist', 'photo'];
-const DEFAULT_PUBLIC = 'meta,mood,events,outfits,timeline,playlist,photo';
+const DEFAULT_PUBLIC = 'meta,mood,events,outfits,timeline,playlist,photo,guests,tables';
 
 function publicSections() {
   const raw = (process.env.PUBLIC_SECTIONS === undefined ? DEFAULT_PUBLIC : process.env.PUBLIC_SECTIONS)
