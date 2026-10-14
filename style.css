@@ -227,3 +227,107 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:po
 .ro select.in:disabled{background-image:none}
 .ro input[type=checkbox]:disabled{cursor:default;opacity:.8}
 .ro textarea.in:disabled{resize:none}
+
+/* ---------- responsive: phones and small tablets ---------- */
+@media (max-width:959px){
+  .mast{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 12px;align-items:center;padding-block:14px 8px}
+  .mast .eyebrow{display:none}
+  .mast .names{font-size:26px;margin:0;grid-column:1;grid-row:1}
+  .mast .cd{grid-column:2;grid-row:1;margin:0;text-align:right;font-size:12px;white-space:nowrap}
+  .mast .cd b{font-size:22px}
+  .mast .when{grid-column:1/-1;grid-row:2;font-size:13px}
+  .mast .sync{grid-column:1/-1;grid-row:3;margin:2px 0 0}
+  .mast .bk{grid-column:1/-1;grid-row:4;margin-top:8px}
+  .main{padding-block:18px}
+  .head{margin-bottom:14px}
+  .acts{width:100%}
+  .dash{padding:16px}
+  .panel{padding:16px}
+  .nl{padding:9px 14px}
+}
+@media (max-width:700px){
+  body{font-size:15px}
+  /* 16px stops iPhones from zooming in when a field is tapped */
+  .in,.fld .in,.search,select.cb,.gcard input{font-size:16px}
+  .in{padding:10px 10px;min-height:44px}
+  textarea.in{min-height:3.2em}
+  .btn{min-height:40px}
+  .btn.sm{min-height:36px}
+  input[type=checkbox]{width:22px;height:22px}
+  .x{width:36px;height:36px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+  .sv{font-size:22px}
+  .hrow{grid-template-columns:minmax(80px,120px) minmax(0,1fr) auto;gap:8px;font-size:13px}
+  .form{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .tiles3{grid-template-columns:minmax(0,1fr)}
+
+  /* tables turn into one card per row */
+  .tbl-wrap:not(:has(.vt)){overflow:visible;background:none;border:0;border-radius:0}
+  .tbl-wrap table:not(.vt){min-width:0!important;width:100%!important;display:block}
+  .tbl-wrap table:not(.vt) thead{display:none}
+  .tbl-wrap table:not(.vt) tbody,.tbl-wrap table:not(.vt) tfoot{display:block}
+  .tbl-wrap table:not(.vt) tr{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px 12px;margin-bottom:10px}
+  .tbl-wrap table:not(.vt) tr.late{border-left:4px solid var(--bad-t)}
+  .tbl-wrap table:not(.vt) tr.late td:first-child{box-shadow:none}
+  .tbl-wrap table:not(.vt) tbody tr:hover td{background:none}
+  .tbl-wrap table:not(.vt) td{display:block;border:0;padding:0;min-width:0!important;max-width:none!important;text-align:left}
+  .tbl-wrap table:not(.vt) td.r,.tbl-wrap table:not(.vt) td.c{text-align:left}
+  .tbl-wrap table:not(.vt) td[data-label]::before{content:attr(data-label);display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:8px 0 2px}
+  .tbl-wrap table:not(.vt) td.wide{grid-column:1/-1}
+  .tbl-wrap table:not(.vt) td.first-wide{padding-right:34px}
+  .tbl-wrap table:not(.vt) td.del{position:absolute;top:6px;right:6px;width:auto}
+  .tbl-wrap table:not(.vt) td.del::before{display:none}
+  .tbl-wrap table:not(.vt) td.empty{grid-column:1/-1;padding:18px 0;text-align:center}
+  .tbl-wrap table:not(.vt) tfoot td{border:0;padding:2px 0;font-variant-numeric:tabular-nums}
+  .tbl-wrap table:not(.vt) tfoot tr{background:var(--surface-2)}
+  .tbl-wrap table:not(.vt) input.num{text-align:left}
+
+  /* venue comparison keeps its side-by-side grid, just narrower */
+  .vt th.rowlab,.vt td.rowlab{min-width:104px!important;max-width:104px!important;font-size:11px;padding:8px 6px}
+  .vt td,.vt thead th:not(.rowlab){min-width:210px!important;max-width:210px!important}
+
+  /* calendar */
+  .cal .dh{padding:6px 2px;font-size:10px;letter-spacing:.03em}
+  .day{min-height:52px;padding:3px}
+  .head h2{font-size:30px}
+
+  /* timeline: time on top, details underneath */
+  .tr{grid-template-columns:14px minmax(0,1fr) 36px;gap:0 8px}
+  .tr::before{left:6px}
+  .tr>div:nth-child(1){grid-column:2;grid-row:1;max-width:150px}
+  .tr>.dot{grid-column:1;grid-row:1;margin-top:19px}
+  .tr>.tbody{grid-column:2/4;grid-row:2}
+  .tr>div:last-child{grid-column:3;grid-row:1;justify-self:end}
+  .phase{margin:16px 0 6px 22px}
+
+  /* seating, moods, outfits */
+  .tables,.mtiles,.ocards{grid-template-columns:minmax(0,1fr)}
+  .pool .gcp{grid-template-columns:minmax(0,1fr) 130px}
+  .oc .two{grid-template-columns:1fr 1fr}
+  .swatches{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .toast{left:16px;right:16px;transform:none;max-width:none;justify-content:space-between}
+}
+@media (max-width:420px){
+  .form{grid-template-columns:minmax(0,1fr)}
+  .oc .two{grid-template-columns:minmax(0,1fr)}
+  .fld.inline{width:100%}
+  .fld.inline .in{flex:1;width:auto}
+}
+/* large screens: keep line lengths comfortable */
+@media (min-width:1500px){
+  .app{max-width:1600px;grid-template-columns:240px minmax(0,1fr)}
+  .main{padding-inline:12px}
+}
+@media (min-width:960px){
+  .head{margin-top:0}
+}
+
+.g.k-task::before{content:"●";color:var(--c1)}.g.k-pay::before{content:"₱";color:var(--c2);font-weight:800}
+.g.k-event::before{content:"◆";color:var(--c3)}.g.k-wedding::before{content:"♥";color:var(--accent)}.g.k-rsvp::before{content:"✉";color:var(--c7)}
+.g.k-task,.g.k-pay,.g.k-event,.g.k-wedding,.g.k-rsvp{display:inline-block}
+
+@media (max-width:700px){
+  .tbl-wrap table:not(.vt) td.chkcell{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:36px}
+  .tbl-wrap table:not(.vt) td.chkcell::before{margin:0}
+}

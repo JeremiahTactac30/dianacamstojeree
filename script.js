@@ -574,13 +574,36 @@ function refreshDerived(){
 function applySearch(){const q=(ui.gq||'').toLowerCase().trim();document.querySelectorAll('#view tbody tr[data-q]').forEach(r=>{r.hidden=!!q&&r.dataset.q.indexOf(q)<0})}
 function snapFocus(){const a=document.activeElement;if(a&&a.dataset&&a.dataset.f&&$('#view').contains(a))return{k:a.dataset.k,id:a.dataset.id||'',f:a.dataset.f,s:a.selectionStart,e:a.selectionEnd};return null}
 function restoreFocus(p,sc){if(!p)return;const el=[...document.querySelectorAll('#view [data-f]')].find(x=>x.dataset.k===p.k&&(x.dataset.id||'')===p.id&&x.dataset.f===p.f);if(el){el.focus({preventScroll:!sc});try{if(p.s!=null&&p.s!==undefined)el.setSelectionRange(p.s,p.e)}catch(e){}}}
+/* adds the labels the phone layout shows above each field in a row */
+function labelTables(){
+  document.querySelectorAll('#view .tbl-wrap table:not(.vt)').forEach(t=>{
+    const hs=[...t.querySelectorAll('thead th')].map(th=>th.textContent.trim());
+    t.querySelectorAll('tbody tr, tfoot tr').forEach(tr=>{
+      let i=0,firstWide=false;
+      [...tr.children].forEach(td=>{
+        const span=td.colSpan||1;
+        if(span===1&&hs[i]&&!td.classList.contains('empty'))td.setAttribute('data-label',hs[i]);
+        const ta=td.querySelector('textarea');
+        const tx=td.querySelector('input.in:not(.num):not([type=date]):not([type=time]):not([type=checkbox]):not([type=color])');
+        if(ta||tx){
+          const f=(ta||tx).dataset.f||'';
+          if(!firstWide){td.classList.add('first-wide');firstWide=true;td.classList.add('wide')}
+          else if(ta||/^(pkg|notes|includes|plan|risk|text|outfit|title|shot|who|where|contact)$/.test(f))td.classList.add('wide');
+        }
+        if(td.querySelector(':scope>input[type=checkbox]'))td.classList.add('chkcell');
+        if(td.querySelector(':scope>.x'))td.classList.add('del');
+        i+=span;
+      });
+    });
+  });
+}
 function render(keep){
   const p=keep===false?null:snapFocus(),y=window.scrollY;
   if(VIEWER&&!canSee(ui.cur))ui.cur='overview';
   document.body.classList.toggle('ro',VIEWER);
   $('#view').innerHTML=VIEWS[ui.cur].render();
   if(VIEWER)lockView();
-  refreshDerived();renderNav();applySearch();
+  labelTables();refreshDerived();renderNav();applySearch();
   if(ui.focus){const f=ui.focus;ui.focus=null;restoreFocus(f,true)}else restoreFocus(p);
   if(keep!==false)window.scrollTo(0,y);
 }

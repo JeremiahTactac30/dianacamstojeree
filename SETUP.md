@@ -49,9 +49,10 @@ Anyone who opens your Vercel link without the passcode now sees a read-only vers
 They cannot edit, add, delete or save anything. They see only the sections you allow.
 
 **Visitors see by default:** wedding names and date, mood board, calendar appointments,
-outfit details (without prices), wedding day timeline, playlist and photography plan.
+outfit details (without prices), wedding day timeline, playlist, photography plan,
+guest list and seating plan.
 
-**Always private (visitors never receive this data):** budget, guest list, seating,
+**Always private (visitors never receive this data):** budget,
 task tracker, vendor quotes and contacts, venue comparison, emergency contacts,
 the do-not-play list and the budget and guest targets.
 
